@@ -4,49 +4,98 @@ import requests
 
 API = "http://127.0.0.1:8000"  # change to your deployed URL later
 
-st.set_page_config(page_title="AI Flashcards Arena", page_icon="🃏")
+st.set_page_config(page_title="AI Flashcards Arena", page_icon="🃏", layout="wide")
 
 st.title("🃏 AI Flashcards Arena")
-st.caption("Frontend → Backend health check")
+st.caption("FastAPI + Streamlit • Upload → Extract → Generate Flashcards")
 
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("Ping backend"):
-        try:
-            r = requests.get(f"{API}/health", timeout=5)
-            r.raise_for_status()
-            st.success(r.json())
-        except Exception as e:
-            st.error(f"Request failed: {e}")
-
-with col2:
-    st.code(f"GET {API}/health", language="bash")
+# =========================
+# Sidebar: Backend Health
+# =========================
+with st.sidebar:
+    st.subheader("Backend")
+    try:
+        r = requests.get(f"{API}/health", timeout=3)
+        st.success(f"Health: {r.json().get('status', '?')}")
+        st.caption(r.json())
+    except Exception as e:
+        st.error(f"Backend unreachable: {e}")
 
 st.divider()
-st.write("If this works, we’re ready to build uploads & flashcards 🚀")
 
-# --- Upload & Extract ---
-import streamlit as st
-import requests
+# Keep extracted text in session between actions
+if "uploaded_text" not in st.session_state:
+    st.session_state["uploaded_text"] = ""
 
-API = "http://127.0.0.1:8000"
+# =========================
+# 1) Upload → Extract Text
+# =========================
+st.header("1) Upload Text Source (PDF or TXT)")
 
-st.subheader("Upload → Extract text")
 uploaded = st.file_uploader("Upload a .pdf or .txt", type=["pdf", "txt"])
 
-if uploaded is not None:
-    colA, colB = st.columns([1,1])
-    with colA:
+colA, colB = st.columns([1, 1])
+with colA:
+    if uploaded is not None:
         st.write(f"Selected: **{uploaded.name}**")
-    with colB:
-        if st.button("Extract text"):
-            try:
-                files = {"file": (uploaded.name, uploaded.getvalue(), uploaded.type or "application/octet-stream")}
-                with st.spinner("Extracting…"):
-                    r = requests.post(f"{API}/upload", files=files, timeout=60)
-                    r.raise_for_status()
-                data = r.json()
-                st.success(f"Extracted {data['chars']} characters from {data['filename']}")
-                st.text_area("Preview (first ~1,200 chars)", value=data["preview"], height=300)
-            except Exception as e:
-                st.error(f"Upload failed: {e}")
+with colB:
+    if st.button("Extract text") and uploaded is not None:
+        try:
+            files = {"file": (uploaded.name, uploaded.getvalue(), uploaded.type or "application/octet-stream")}
+            with st.spinner("Extracting…"):
+                # ask backend to include full extracted text in response
+                r = requests.post(f"{API}/upload", files=files, params={"include_text": True}, timeout=60)
+                r.raise_for_status()
+            data = r.json()
+            full_text = data.get("text") or data.get("preview") or ""
+            st.session_state["uploaded_text"] = full_text
+            st.success(f"Extracted {len(full_text)} characters from {data.get('filename', uploaded.name)}")
+        except Exception as e:
+            st.error(f"Upload failed: {e}")
+
+# Preview extracted text (if any)
+if st.session_state["uploaded_text"]:
+    with st.expander("Preview extracted text"):
+        txt = st.session_state["uploaded_text"]
+        st.write(txt[:3000] + ("..." if len(txt) > 3000 else ""))
+
+st.divider()
+
+# =========================
+# 2) Generate Flashcards
+# =========================
+st.header("2) Generate Flashcards")
+
+src = st.radio("Choose source", ["Use uploaded text", "Paste text manually"], horizontal=True)
+seed_text = st.session_state["uploaded_text"] if src == "Use uploaded text" else ""
+text_input = st.text_area(
+    "Text to generate flashcards from:",
+    value=seed_text,
+    height=220,
+    placeholder="Paste text or use uploaded text above…",
+)
+
+n_cards = st.slider("Number of cards to generate", min_value=5, max_value=30, value=10)
+
+if st.button("Generate Cards"):
+    if not text_input.strip():
+        st.warning("Please provide text (upload or paste).")
+    else:
+        try:
+            with st.spinner("Generating cards..."):
+                resp = requests.post(
+                    f"{API}/cards/generate",
+                    json={"text": text_input, "n": n_cards},
+                    timeout=60
+                )
+                resp.raise_for_status()
+            cards = resp.json().get("cards", [])
+            st.success(f"Generated {len(cards)} cards")
+            for i, c in enumerate(cards, 1):
+                with st.expander(f"Q{i}: {c['q']}"):
+                    st.markdown(f"**Answer:** {c['a']}")
+        except Exception as e:
+            st.error(f"Generation failed: {e}")
+
+st.divider()
+st.caption("Tip: Keep paragraphs reasonably sized for best cloze questions (short fragments may be skipped).")

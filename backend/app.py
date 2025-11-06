@@ -2,11 +2,14 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field              
+from typing import List                            
 import io, chardet, pdfplumber
+
+from .services.cards import generate_cards         
 
 app = FastAPI()
 
-# CORS so any future web frontend can call the API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # tighten in prod
@@ -26,12 +29,10 @@ def extract_text_from_pdf(raw: bytes) -> str:
             try:
                 text_parts.append(page.extract_text() or "")
             except Exception:
-                # skip pages that fail extraction
                 continue
     return "\n\n".join(text_parts).strip()
 
 def extract_text_from_txt(raw: bytes) -> str:
-    # best-effort encoding detection
     det = chardet.detect(raw)
     enc = det.get("encoding") or "utf-8"
     try:
@@ -39,8 +40,9 @@ def extract_text_from_txt(raw: bytes) -> str:
     except Exception:
         return raw.decode("utf-8", errors="ignore")
 
+# NOTE: add include_text flag so clients can ask for the full text when needed
 @app.post("/upload")
-async def upload(file: UploadFile = File(...)):
+async def upload(file: UploadFile = File(...), include_text: bool = False):  # NEW: include_text
     fname = (file.filename or "").lower()
     raw = await file.read()
 
@@ -54,8 +56,33 @@ async def upload(file: UploadFile = File(...)):
     if not text.strip():
         raise HTTPException(status_code=422, detail="No extractable text found in file")
 
-    return JSONResponse({
+    payload = {
         "filename": file.filename,
         "chars": len(text),
-        "preview": text[:1200],  # keep payload small
-    })
+        "preview": text[:1200],  # keep payload small by default
+    }
+    if include_text:                          # NEW: return full text on demand
+        payload["text"] = text
+    return JSONResponse(payload)
+
+# ---------- NEW: /cards/generate ----------
+class Card(BaseModel):
+    q: str
+    a: str
+
+class GenerateRequest(BaseModel):
+    text: str = Field(..., description="Raw text to turn into flashcards")
+    n: int = Field(10, ge=1, le=50, description="Number of cards to generate")
+
+class GenerateResponse(BaseModel):
+    cards: List[Card]
+
+@app.post("/cards/generate", response_model=GenerateResponse)
+def cards_generate(payload: GenerateRequest):
+    text = (payload.text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="`text` is required.")
+    cards = generate_cards(text, n=payload.n)
+    if not cards:
+        raise HTTPException(status_code=422, detail="Could not generate cards from the provided text.")
+    return {"cards": cards}
