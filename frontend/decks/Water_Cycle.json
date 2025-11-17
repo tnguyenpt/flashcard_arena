@@ -1,0 +1,26 @@
+[
+  {
+    "q": "The water cycle is the _____ movement of water within the Earth and atmosphere.",
+    "a": "continuous"
+  },
+  {
+    "q": "It involves several major processes: evaporation, condensation, _____, infiltration, and runoff.",
+    "a": "precipitation"
+  },
+  {
+    "q": "Water _____ from oceans, lakes, and rivers due to heat from the sun.",
+    "a": "evaporates"
+  },
+  {
+    "q": "The vapor rises, cools, and _____ into clouds.",
+    "a": "condenses"
+  },
+  {
+    "q": "When clouds become heavy, _____ occurs, returning water to the Earth’s surface as rain, snow, sleet, or hail.",
+    "a": "precipitation"
+  },
+  {
+    "q": "Some water _____ into the soil and replenishes groundwater, while the rest forms runoff, flowing back into bodies of water and repeating the cycle.",
+    "a": "infiltrates"
+  }
+]

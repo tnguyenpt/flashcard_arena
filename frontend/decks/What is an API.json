@@ -1,0 +1,22 @@
+[
+  {
+    "q": "APIs allow developers to access external services like _____, data retrieval, or AI models without needing to understand the underlying system.",
+    "a": "authentication"
+  },
+  {
+    "q": "JSON is the most common format for _____ data.",
+    "a": "sending"
+  },
+  {
+    "q": "In REST APIs, _____ typically occurs over HTTP using verbs such as GET, POST, PUT, and DELETE.",
+    "a": "communication"
+  },
+  {
+    "q": "APIs define how requests are made, what data must be provided, and how _____ are delivered.",
+    "a": "responses"
+  },
+  {
+    "q": "An API (Application Programming Interface) is a set of rules and protocols that allow different software _____ to communicate with each other.",
+    "a": "applications"
+  }
+]
