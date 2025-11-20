@@ -1,0 +1,21 @@
+# Dockerfile.frontend
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy requirements and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy frontend code
+COPY frontend ./frontend
+
+# Expose Streamlit port
+EXPOSE 8501
+
+# Default BACKEND_URL inside Docker; can be overridden
+ENV BACKEND_URL="http://backend:8000"
+
+# Run Streamlit
+WORKDIR /app/frontend
+CMD ["streamlit", "run", "app.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
