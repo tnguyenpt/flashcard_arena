@@ -1,9 +1,4 @@
 # 🃏 AI Flashcards Arena
-
-<p align="center">
-  <img src="assets/demo.gif" width="850">
-</p>
-
 <p align="center">
   <b>Upload → Extract → Generate → Study → Quiz</b><br>
   Built with <b>FastAPI</b>, <b>OpenAI</b>, <b>Streamlit</b>, and <b>Docker</b>.
@@ -26,7 +21,7 @@ AI Flashcards Arena is a smart flashcard generator that transforms PDFs or text 
 ## 📺 Demo
 
 <p align="center">
-  <img src="assets/demo.gif" width="900">
+  <img src="assets/demo.gif" width="1200">
 </p>
 
 ---
