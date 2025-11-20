@@ -1,4 +1,3 @@
-📘 README.md — AI Flashcards Arena
 # 🃏 AI Flashcards Arena
 
 <p align="center">
@@ -36,45 +35,40 @@ AI Flashcards Arena is a smart flashcard generator that transforms PDFs or text 
 
 ### ✔️ AI Flashcard Generation
 - OpenAI-powered flashcards using **gpt-4.1-mini**
-- Controls for difficulty and style
-- Clean JSON schema
-- Automatic fallback to a deterministic rule-based generator if AI fails
+- Difficulty + style controls
+- Clean JSON schema output
+- Automatic fallback to the built-in rule-based generator
 
 ---
 
 ## 📄 File Upload & Text Extraction
-
 - PDF extraction via **pdfplumber**
-- TXT parsing via **chardet**
-- In-app preview of extracted text
+- TXT decoding via **chardet**
+- Full text preview within the UI
 
 ---
 
 ## 🎓 Study & Quiz Modes
-
-- Study mode with expandable Q/A
+- Study mode with expandable questions
 - Quiz mode with:
-  - Free-response answering
-  - Intelligent answer matching
-  - Scoring & progress tracking
-  - Skip, reveal, next/previous
+  - Free-response input
+  - Intelligent, fuzzy-matched answer checking
+  - Progress tracking + scoring
+  - Skip, reveal, next, previous navigation
 
 ---
 
 ## 💾 Deck Storage
-
-- Persistent deck saving to `frontend/decks/*.json`
-- Load any previous deck
-- Perfect for long-term study
+- Saves decks to `frontend/decks/*.json`
+- Load any previous deck anytime
+- Ideal for long-term study
 
 ---
 
 ## 🐳 Full Docker Support
-
-- Backend and frontend run in separate containers
-- One command to start everything
-- `.env` support for your OpenAI key
-- Ideal for demos & deployment
+- Backend (FastAPI) and Frontend (Streamlit) run in separate containers
+- `.env` support for your **OpenAI API key**
+- One-command deployment through Docker Compose
 
 ---
 
@@ -92,7 +86,7 @@ flashcard_arena/
 │   ├── app.py             # Upload, extraction, generate, study, quiz
 │   └── decks/             # Saved decks
 │
-├── assets/                # Demo GIFs / images
+├── assets/                # Demo images / GIFs
 │   └── demo.gif
 │
 ├── Dockerfile.backend
@@ -100,88 +94,117 @@ flashcard_arena/
 ├── docker-compose.yml
 ├── requirements.txt
 └── .env.example
-
+```
 
 ---
 
-🛠️ Local Development Setup (No Docker) (via bash)
-1. Create & activate venv 
+## 🛠️ Local Development Setup (No Docker)
+
+```bash
+# 1) Create & activate venv
 python3 -m venv venv
 source venv/bin/activate       # Mac/Linux
-or
+# OR
 .\venv\Scripts\activate        # Windows
-2. Install dependencies
+
+# 2) Install dependencies
 pip install -r requirements.txt
-3. Set your API key
+
+# 3) Set your API key
 export OPENAI_API_KEY=sk-...
-4. Run backend
+
+# 4) Run backend
 uvicorn backend.app:app --reload --port 8000
-Docs: http://127.0.0.1:8000/docs
-5. Run frontend
+
+# 5) Run frontend
 cd frontend
 streamlit run app.py
+```
+
+Backend docs: http://127.0.0.1:8000/docs
 
 ---
 
-🐳 Running with Docker (recommended)
-1. Create .env
+## 🐳 Running with Docker (Recommended)
+
+```bash
+# 1) Create .env in the project root
 OPENAI_API_KEY=sk-your-key-here
-2. Start everything
-From project root:
+
+# 2) Start full stack
 docker compose up --build
-Services will be available at:
-- Frontend (Streamlit): http://localhost:8501
-- Backend (FastAPI): http://localhost:8000/docs
+```
+
+Services:
+
+- **Frontend (Streamlit):** http://localhost:8501  
+- **Backend (FastAPI):** http://localhost:8000/docs  
 
 ---
 
-📡 API Endpoints
-GET /health - Check service status.
-POST /upload - Extract text from PDF or TXT.
-POST /cards/generate
-Generate flashcards:
+## 📡 API Endpoints
+
+### `GET /health`
+Health status.
+
+### `POST /upload`
+Extract text from PDF or TXT.
+
+### `POST /cards/generate`
+Generate flashcards using AI (with fallback).
+
+**Request:**
+```json
 {
   "text": "source text",
   "n": 10,
   "difficulty": "medium",
   "style": "mixed"
 }
-Response:
+```
+
+**Response:**
+```json
 {
   "cards": [{ "q": "...", "a": "..." }],
   "mode": "ai",
   "fallback_error": null
 }
+```
 
 ---
 
-🌐 Deployment
-This project is fully ready for deployment on:
-Fly.io (recommended)
-Railway
-Render
-HuggingFace Spaces (Streamlit-friendly)
-DigitalOcean
-Any Docker-compatible cloud provider
-Docker Compose makes it simple to run frontend + backend anywhere.
+## 🌐 Deployment
+
+Deployable on:
+
+- Fly.io (recommended)
+- Railway
+- Render
+- HuggingFace Spaces
+- DigitalOcean
+- Any Docker-based environment
 
 ---
 
-🧭 Roadmap
-Multiple-choice flashcard generation
-Fill-in-the-blank (cloze deletion)
-PDF chapter auto-chunking
-Local vector search for semantic flashcard lookup
-Dark mode enhancements
-VS AI mode (Arena Aspect of App)
+## 🧭 Roadmap
+
+- Multiple-choice flashcards  
+- Fill-in-the-blank (cloze deletion)  
+- Auto-chunking long PDFs  
+- Local vector search for flashcard lookup  
+- Enhanced dark mode  
+- “VS AI Mode” (arena-style challenge mode)  
 
 ---
 
-📜 License
-MIT — free to use, modify, and share.
+## 📜 License
+
+MIT — free to use, modify, and distribute.
 
 ---
 
-✨ Author
-Built by Tony Nguyen as part of an AI engineering + product portfolio.
-Features: AI integration, full-stack architecture, containerization, UI/UX workflow, and ML-assisted content generation.
+## ✨ Author
+
+Built by **Tony Nguyen** as part of an AI engineering + product portfolio.  
+Showcasing: AI integration, full-stack architecture, containerization, design systems, and ML-assisted content generation.
