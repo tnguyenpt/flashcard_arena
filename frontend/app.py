@@ -101,6 +101,9 @@ def ensure_state():
     ss.setdefault("quiz_feedback", "")   # "", "correct", "incorrect"
     ss.setdefault("quiz_last_idx", None) # track card changes
     ss.setdefault("quiz_clear", False)   # flag: clear input BEFORE rendering widget
+    # generation metadata
+    ss.setdefault("gen_mode", None)              # "ai" | "basic" | None
+    ss.setdefault("gen_fallback_error", None)    # last fallback error, if any
 
 ensure_state()
 
@@ -229,6 +232,13 @@ st.divider()
 # -------------------------------
 st.header("2) Generate Flashcards")
 
+# Show last generation metadata
+if st.session_state.get("gen_mode"):
+    mode_label = "AI" if st.session_state["gen_mode"] == "ai" else "Basic (fallback)"
+    st.caption(f"Last generation mode: **{mode_label}**")
+    if st.session_state["gen_fallback_error"]:
+        st.caption(f"Last AI error: `{st.session_state['gen_fallback_error']}`")
+
 src = st.radio("Choose source", ["Use uploaded text", "Paste text manually"], horizontal=True)
 seed_text = st.session_state["uploaded_text"] if src == "Use uploaded text" else ""
 text_input = st.text_area(
@@ -237,6 +247,21 @@ text_input = st.text_area(
     height=220,
     placeholder="Paste text or use uploaded text above…",
 )
+
+# AI options
+ai_cols = st.columns(2)
+with ai_cols[0]:
+    difficulty = st.selectbox(
+        "Difficulty",
+        options=["easy", "medium", "hard"],
+        index=1,
+    )
+with ai_cols[1]:
+    style = st.selectbox(
+        "Style",
+        options=["mixed", "definitions", "concepts", "examples"],
+        index=0,
+    )
 
 cols2 = st.columns([1, 1, 1, 2])
 with cols2[0]:
@@ -252,15 +277,35 @@ with cols2[2]:
                 with st.spinner("Generating cards..."):
                     resp = requests.post(
                         f"{API}/cards/generate",
-                        json={"text": text_input, "n": n_cards},
+                        json={
+                            "text": text_input,
+                            "n": n_cards,
+                            "difficulty": difficulty,
+                            "style": style,
+                        },
                         timeout=60,
                     )
                     resp.raise_for_status()
-                cards = resp.json().get("cards", [])
+                data = resp.json()
+                cards = data.get("cards", [])
+                mode = data.get("mode")
+                fallback_error = data.get("fallback_error")
+
+                # store generation metadata
+                st.session_state["gen_mode"] = mode
+                st.session_state["gen_fallback_error"] = fallback_error
+
                 if shuffle_opt:
                     cards = cards[::-1]  # quick client-side shuffle
+
                 load_deck_into_session(cards)
-                st.success(f"Generated {len(cards)} cards")
+
+                if mode == "ai":
+                    st.success(f"Generated {len(cards)} cards (AI mode)")
+                else:
+                    st.info(f"Generated {len(cards)} cards (basic generator / fallback)")
+                    if fallback_error:
+                        st.caption(f"AI error: {fallback_error}")
             except Exception as e:
                 st.error(f"Generation failed: {e}")
 with cols2[3]:
