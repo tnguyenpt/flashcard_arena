@@ -114,10 +114,12 @@ def reset_quiz():
     ss["quiz_correct"] = 0
     ss["quiz_seen"] = 0
     ss["quiz_history"] = []
-    ss["quiz_answer"] = ""
+    # DO NOT directly modify quiz_answer here — widget already exists this run
     ss["quiz_feedback"] = ""
     ss["quiz_last_idx"] = None
-    ss["quiz_clear"] = False
+    # Tell next render to clear the input BEFORE the widget is recreated
+    ss["quiz_clear"] = True
+
 
 def load_deck_into_session(cards: List[Dict[str, str]]):
     st.session_state["cards"] = cards or []
