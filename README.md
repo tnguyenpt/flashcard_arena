@@ -98,6 +98,17 @@ docker compose up --build
 - FastAPI for explicit API boundaries and easier scaling later
 - Fallback generator to preserve UX even when LLM path is unavailable
 
+## Suggested screenshots (portfolio)
+
+Add these files under `docs/screenshots/`:
+
+- `upload-and-extract.png`
+- `generated-cards-view.png`
+- `quiz-mode.png`
+- `deck-save-load.png`
+
+When ready, they can be embedded directly in this README.
+
 ## Next iteration (portfolio roadmap)
 
 - Add backend endpoint tests with mocked AI
